@@ -225,11 +225,11 @@ resource "azurerm_virtual_machine_extension" "AADLoginForWindows" {
   type                       = "AADLoginForWindows"
   type_handler_version       = "1.0"
   auto_upgrade_minor_version = true
-  settings                   = <<-SETTINGS
-    {
-      "mdmId": "0000000a-0000-0000-c000-000000000000"
-    }
-SETTINGS
+#   settings                   = <<-SETTINGS
+#     {
+#       "mdmId": "0000000a-0000-0000-c000-000000000000"
+#     }
+# SETTINGS
   depends_on = [
     azurerm_windows_virtual_machine.avd_host_vm
   ]
