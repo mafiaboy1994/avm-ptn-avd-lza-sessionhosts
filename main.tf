@@ -198,13 +198,18 @@ resource "azurerm_virtual_machine_extension" "avd_host_host_pool_join_dsc" {
 
   #settings           = jsonencode(local.dsc_settings_json)
   settings = local.dsc_settings_json
-  protected_settings = <<PROTECTED_SETTINGS
-  {
-    "properties": {
-      "registrationInfoToken": "${var.registrationInfoToken}"
+#   protected_settings = <<PROTECTED_SETTINGS
+#   {
+#     "properties": {
+#       "registrationInfoToken": "${var.registrationInfoToken}"
+#     }
+#   }
+# PROTECTED_SETTINGS
+  protected_settings = jsonencode({
+    properties = {
+      registrationInfoToken = var.registrationInfoToken
     }
-  }
-PROTECTED_SETTINGS
+  })
 
   lifecycle {
     ignore_changes = [settings, protected_settings, tags, virtual_machine_id]
