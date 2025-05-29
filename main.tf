@@ -85,11 +85,11 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
   enable_automatic_updates   = false
   encryption_at_host_enabled = true
   network_interface_ids = [
-    azurerm_network_interface.avd_host_vm_nic.id
+    azurerm_network_interface.avd_host_vm_nic[count.index].id
   ]
   provision_vm_agent = true
   admin_username     = var.hosts_admin_username
-  admin_password     = azurerm_key_vault_secret.admin_password.value
+  admin_password     = azurerm_key_vault_secret.admin_password[count.index].value
   boot_diagnostics {
     storage_account_uri = null
   }
@@ -129,7 +129,7 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
   source_image_id = local.valid_shared_image_id
 
   depends_on = [
-    azurerm_network_interface.avd_host_vm_nic
+    azurerm_network_interface.avd_host_vm_nic[count.index]
   ]
 
   lifecycle {
