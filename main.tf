@@ -102,7 +102,7 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
 
   #vm_agent_platform_updates_enabled = true
   #patch_assessment_mode             = "AutomaticByPlatform"
-  patch_mode = "AutomaticByPlatform"
+  patch_mode = "AutomaticByOS"
 
   identity {
     type = "SystemAssigned"
