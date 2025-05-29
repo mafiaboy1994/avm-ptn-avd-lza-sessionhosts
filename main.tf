@@ -82,7 +82,7 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
 
   name                       = "${var.hosts_name_prefix}${count.index+1}"
   size                       = var.hosts_sku
-  enable_automatic_updates   = false
+  enable_automatic_updates   = true
   encryption_at_host_enabled = true
   network_interface_ids = [
     azurerm_network_interface.avd_host_vm_nic[count.index].id
