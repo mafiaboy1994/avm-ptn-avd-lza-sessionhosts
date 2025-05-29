@@ -207,3 +207,9 @@ variable "domain_join_username"{
     error_message = "domain_join_username must be provided if domain_join_type is 'AD'."
   }
 }
+
+variable "enable_aad_login_extension"{
+  type = bool
+  description = "Whether to install the AADLoginForWindows extension to support Entra ID logins."
+  default = true
+}
