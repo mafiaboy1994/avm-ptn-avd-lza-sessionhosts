@@ -20,8 +20,8 @@ resource "azurerm_virtual_desktop_host_pool_registration_info" "registrationinfo
 
 module "module_avd_hosts"{
   source = "../../."
-  
   hosts_resource_group = "org-avd-val-apps-uks-rg001-hosts"
+  hosts_count = 1
   hosts_name_prefix = "avd-apps-staging"
   hosts_sku = "Standard_DS4_v2"
   hosts_os_disk_size = 128
@@ -36,7 +36,6 @@ module "module_avd_hosts"{
     "managed_by" = "AVM"
   }
   location = "uksouth"
-  hosts_count = 1
   virtual_desktop_host_pool_subnet_configuration = {
     virtual_network_name    = "vnet-010"
     virtual_network_rg_name = "rg-networking-org"
