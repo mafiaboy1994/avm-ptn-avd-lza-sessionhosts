@@ -1,10 +1,19 @@
 locals {
-  is_valid_shared_image_id = (
+  # Detect valid shared image
+  valid_shared_image_id = (
     var.shared_image_id != null &&
     var.shared_image_id != ""
-  )
+  ) ? var.shared_image_id : null
 
   
+
+  # Detect valid secret name for domain join password
+  is_valid_secret_name = (
+    var.domain_join_password_secret_name != null &&
+    var.domain_join_password_secret_name != ""
+  )
+
+  # Check domain join type
   is_entra_join = var.domain_join_type == "entra"
   is_ad_join = var.domain_join_type == "AD"
 
@@ -39,9 +48,9 @@ locals {
   #   Password = data.azurerm_key_vault_secret.domain_join_secret
   # }: null
 
-   join_domain_password_value = (
-    local.is_ad_join &&
-    length(data.azurerm_key_vault_secret.domain_join_secret) > 0
+   # Only use the secret if AD join is true and secret exists
+  join_domain_password_value = (
+    local.is_ad_join && local.is_valid_secret_name
   ) ? data.azurerm_key_vault_secret.domain_join_secret[0].value : null
 
   join_domain_settings = local.is_ad_join ? {

@@ -8,7 +8,7 @@ data "azurerm_client_config" "current" {}
 
 
 data "azurerm_key_vault_secret" "domain_join_secret" {
-  count = local.is_valid_secret_name ? 1 : 0
+  count        = local.is_valid_secret_name ? 1 : 0
   name  = var.domain_join_password_secret_name
   key_vault_id = var.kv_id
 }
@@ -125,8 +125,8 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
     }
   }
 
-  #source_image_id = var.shared_image_id != null ? var.shared_image_id : 0
   source_image_id = local.valid_shared_image_id
+
 
   depends_on = [
     azurerm_network_interface.avd_host_vm_nic
