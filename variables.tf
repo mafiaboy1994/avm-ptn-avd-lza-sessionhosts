@@ -92,16 +92,6 @@ variable "hosts_os_disk_type"{
     }
 }
 
-variable "hosts_count" {
-  type        = number
-  description = "Number of Virtual Machines to create in the host pool."
-  default     = 1
-  validation {
-    condition     = var.hosts_count >= 0
-    error_message = "The number of hosts must be zero or greater."
-  }
-}
-
 variable "hosts_admin_username" {
   type        = string
   description = "Virtual Machine Admin Username"
