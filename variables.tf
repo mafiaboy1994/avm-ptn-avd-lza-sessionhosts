@@ -54,10 +54,6 @@ variable "registrationInfoToken"{
     type = string
     description = "Registration token for the host pool, used to register VMs."
     default = null
-    validation {
-      condition     = can(regex("^[a-zA-Z0-9]{32}$", var.registrationInfoToken)) || var.registrationInfoToken == null
-      error_message = "registrationInfoToken must be a 32-character alphanumeric string or null."
-    }
 }
 
 
