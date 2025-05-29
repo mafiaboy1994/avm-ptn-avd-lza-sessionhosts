@@ -65,15 +65,17 @@ locals {
     sessionHostConfigurationLastUpdateTime = ""
   }
 
-  dsc_aad_extras = local.is_entra_join ? tomap({
+  dsc_aad_extras = local.is_entra_join ? {
     aadJoinPreview = false
     mdmId          = "0000000a-0000-0000-c000-000000000000"
-  }) : {}
+  } : {}
+
+  dsc_combined_properties = merge(local.dsc_base_properties, local.dsc_aad_extras)
 
   dsc_settings = {
     modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_09-08-2022.zip"
     configurationFunction = "Configuration.ps1\\AddSessionHost"
-    properties            = merge(local.dsc_base_properties, local.dsc_aad_extras)
+    properties            = local.dsc_combined_properties
   }
 
 

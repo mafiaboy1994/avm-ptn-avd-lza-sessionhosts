@@ -196,7 +196,8 @@ resource "azurerm_virtual_machine_extension" "avd_host_host_pool_join_dsc" {
   type_handler_version       = "2.73"
   auto_upgrade_minor_version = true
 
-  settings           = jsonencode(local.dsc_settings)
+  #settings           = jsonencode(local.dsc_settings_json)
+  settings = local.dsc_settings_json
   protected_settings = <<PROTECTED_SETTINGS
   {
     "properties": {
