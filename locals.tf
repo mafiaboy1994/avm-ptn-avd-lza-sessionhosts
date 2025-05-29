@@ -1,6 +1,6 @@
 locals {
   valid_shared_image_id = (
-    var.shared_image_id != null && trim(var.shared_image_id, " ") != ""
+    can(trim(var.shared_image_id, " ")) && trim(var.shared_image_id, " ") != ""
   ) ? var.shared_image_id : null
 
   
