@@ -216,7 +216,7 @@ PROTECTED_SETTINGS
 
 
 resource "azurerm_virtual_machine_extension" "AADLoginForWindows" {
-  count = var.hosts_count
+  count = local.is_entra_join ? var.hosts_count : 0
   name                       = "AADLoginForWindows"
   virtual_machine_id         = azurerm_windows_virtual_machine.avd_host_vm[count.index].id
   publisher                  = "Microsoft.Azure.ActiveDirectory"
