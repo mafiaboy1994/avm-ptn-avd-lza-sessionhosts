@@ -46,10 +46,10 @@ locals {
         UseAgentDownloadEndpoint            = true
         sessionHostConfigurationLastUpdateTime = ""
       },
-      local.is_entra_join ? {
+      local.is_entra_join ?  tomap({
         aadJoinPreview = false
         mdmId          = "0000000a-0000-0000-c000-000000000000"
-      } : {}
+      }) : {}
     )
   }
 
