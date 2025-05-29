@@ -53,7 +53,6 @@ variable "host_pool_name"{
 variable "registrationInfoToken"{
     type = string
     description = "Registration token for the host pool, used to register VMs."
-    default = null
 }
 
 
