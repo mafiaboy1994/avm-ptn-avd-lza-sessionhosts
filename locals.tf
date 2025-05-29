@@ -70,12 +70,11 @@ locals {
     mdmId          = "0000000a-0000-0000-c000-000000000000"
   } : {}
 
-  dsc_combined_properties = merge(local.dsc_base_properties, local.dsc_aad_extras)
-
+  # Encode inner properties first
   dsc_settings_json = jsonencode({
     modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_09-08-2022.zip"
     configurationFunction = "Configuration.ps1\\AddSessionHost"
-    properties            = local.dsc_combined_properties
+    properties            = jsondecode(jsonencode(merge(local.dsc_base_properties, local.dsc_aad_extras)))
   })
 
 
