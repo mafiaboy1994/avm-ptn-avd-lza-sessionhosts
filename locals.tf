@@ -17,6 +17,8 @@ locals {
   is_entra_join = var.domain_join_type == "entra"
   is_ad_join = var.domain_join_type == "AD"
 
+
+  # old settings
   # dsc_settings = {
   #   modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_09-08-2022.zip"
   #   configurationFunction = "Configuration.ps1\\AddSessionHost"
@@ -36,22 +38,44 @@ locals {
   #   )
   # }
 
+
+  # revert if the aadJoinPreview doesn't output as boolean
+  # dsc_settings = {
+  #   modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_09-08-2022.zip"
+  #   configurationFunction = "Configuration.ps1\\AddSessionHost"
+  #   properties = merge(
+  #     {
+  #       HostPoolName                        = var.host_pool_name
+  #       aadJoin                             = local.is_entra_join
+  #       UseAgentDownloadEndpoint            = true
+  #       sessionHostConfigurationLastUpdateTime = ""
+  #     },
+  #     local.is_entra_join ?  tomap({
+  #       aadJoinPreview = false
+  #       mdmId          = "0000000a-0000-0000-c000-000000000000"
+  #     }) : {}
+  #   )
+  # }
+
+  # New Boolean settings
+  dsc_base_properties = {
+    HostPoolName                        = var.host_pool_name
+    aadJoin                             = local.is_entra_join
+    UseAgentDownloadEndpoint            = true
+    sessionHostConfigurationLastUpdateTime = ""
+  }
+
+  dsc_aad_extras = local.is_entra_join ? tomap({
+    aadJoinPreview = false
+    mdmId          = "0000000a-0000-0000-c000-000000000000"
+  }) : {}
+
   dsc_settings = {
     modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_09-08-2022.zip"
     configurationFunction = "Configuration.ps1\\AddSessionHost"
-    properties = merge(
-      {
-        HostPoolName                        = var.host_pool_name
-        aadJoin                             = local.is_entra_join
-        UseAgentDownloadEndpoint            = true
-        sessionHostConfigurationLastUpdateTime = ""
-      },
-      local.is_entra_join ?  tomap({
-        aadJoinPreview = false
-        mdmId          = "0000000a-0000-0000-c000-000000000000"
-      }) : {}
-    )
+    properties            = merge(local.dsc_base_properties, local.dsc_aad_extras)
   }
+
 
 
    # Only use the secret if AD join is true and secret exists
