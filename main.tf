@@ -8,8 +8,8 @@ data "azurerm_client_config" "current" {}
 
 
 data "azurerm_key_vault_secret" "domain_join_secret" {
-  count        = var.domain_join_password_secret_name != null && trim(var.domain_join_password_secret_name, " ") != "" ? 1 : 0
-  name         = var.domain_join_password_secret_name
+  count = trim(coalesce(var.domain_join_password_secret_name, ""), " ") != "" ? 1 : 0
+  name  = var.domain_join_password_secret_name
   key_vault_id = var.kv_id
 }
 
