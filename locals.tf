@@ -1,7 +1,8 @@
 locals {
-  valid_shared_image_id = (
-  var.shared_image_id != null && trim(var.shared_image_id, " ") != ""
-  ) ? var.shared_image_id : null
+  is_valid_shared_image_id = (
+    var.shared_image_id != null &&
+    var.shared_image_id != ""
+  )
 
   
   is_entra_join = var.domain_join_type == "entra"
