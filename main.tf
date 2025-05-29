@@ -132,6 +132,7 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
   depends_on = [
     azurerm_network_interface.avd_host_vm_nic
   ]
+  tags = var.tags
 
   lifecycle {
     ignore_changes = [
