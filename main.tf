@@ -129,7 +129,7 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
   source_image_id = local.valid_shared_image_id
 
   depends_on = [
-    azurerm_network_interface.avd_host_vm_nic[count.index]
+    azurerm_network_interface.avd_host_vm_nic
   ]
 
   lifecycle {
