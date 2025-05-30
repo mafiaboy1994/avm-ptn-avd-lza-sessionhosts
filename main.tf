@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "avd_host_vm_nic" {
 }
 
 resource "azurerm_role_assignment" "kv_rights" {
-  principal_id         = azurerm_windows_virtual_machine.avd_host_vm[var.vm_index].identity[0].principal_id
+  principal_id         = azurerm_windows_virtual_machine.avd_host_vm.identity[0].principal_id
   scope                = var.kv_id
   role_definition_name = "Key Vault Secrets Officer"
   lifecycle {
@@ -60,7 +60,7 @@ resource "azurerm_role_assignment" "kv_rights" {
 
 
 resource "azurerm_role_assignment" "sa_cmk" {
-  principal_id         = azurerm_windows_virtual_machine.avd_host_vm[var.vm_index].identity[0].principal_id
+  principal_id         = azurerm_windows_virtual_machine.avd_host_vm.identity[0].principal_id
   scope                = var.kv_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
   lifecycle {
