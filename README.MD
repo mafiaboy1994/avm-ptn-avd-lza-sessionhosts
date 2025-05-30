@@ -71,7 +71,6 @@ module "avd_session_hosts" {
   - `domain_name` is provided
   - `domain_ou_path` is provided
   - `domain_join_username` is provided
-  - `
 - A separate `JsonADDomainExtension` is attached to each VM for AD join.
 - `Entra ID` join uses DSC extension with Entra-specific properties.
 
