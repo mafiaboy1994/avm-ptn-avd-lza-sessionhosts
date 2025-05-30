@@ -89,9 +89,14 @@ jobs:
           # Create and push the tag
           git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
           git push https://x-access-token:${PAT}@github.com/${{ github.repository }} "${{ steps.version.outputs.new_tag }}"
-      # - name: Create and push tag
-      #   env:
-      #     PAT: ${{ secrets.GH_PAT }}
-      #   run: |
-      #     git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
-      #     git push https://x-access-token:${PAT}@github.com/${{ github.repository }} --tags
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          release_name: Release ${{ step.version.outputs.new_tag }}
+          body: |
+            Automated release for commit ${{ github.sha }}
+          draft: false
+          prerelease: false
