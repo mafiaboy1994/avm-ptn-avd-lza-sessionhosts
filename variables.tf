@@ -167,14 +167,14 @@ variable "kv_id"{
   }
 }
 
-variable "domain_join_password_secret_name"{
+variable "domain_join_password_secret_resource_id"{
   type = string
-  description = "Name of Key Vault Secret for Domain Join Password"
+  description = "Resource ID of domain join password secret within a kv"
   default = null
-  validation {
-    condition     = var.domain_join_type == "AD" ? var.domain_join_password_secret_name != null : true
-    error_message = "domain_join_password_secret_name must be provided if domain_join_type is 'AD'."
-  }
+  # validation {
+  #   condition     = var.domain_join_type == "AD" ? var.domain_join_password_secret_name != null : true
+  #   error_message = "domain_join_password_secret_name must be provided if domain_join_type is 'AD'."
+  # }
 }
 
 variable "domain_name" {

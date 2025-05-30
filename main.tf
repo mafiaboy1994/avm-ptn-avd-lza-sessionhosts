@@ -1,17 +1,12 @@
 data "azurerm_client_config" "current" {}
 
-# data "azurerm_key_vault_secret" "domain_join_secret"{
-#   count = var.domain_join_password_secret_name ? 1 : 0
-#   name = var.domain_join_password_secret_name
+
+
+# data "azurerm_key_vault_secret" "domain_join_secret" {
+#   count        = local.is_valid_secret_name ? 1 : 0
+#   name  = var.domain_join_password_secret_name
 #   key_vault_id = var.kv_id
 # }
-
-
-data "azurerm_key_vault_secret" "domain_join_secret" {
-  count        = local.is_valid_secret_name ? 1 : 0
-  name  = var.domain_join_password_secret_name
-  key_vault_id = var.kv_id
-}
 
  resource "azurerm_key_vault_secret" "admin_password" {
 
@@ -174,7 +169,7 @@ resource "azurerm_virtual_machine_extension" "joinDomain" {
   settings           = jsonencode(local.join_domain_settings)
   protected_settings = jsonencode(local.join_domain_protected_settings)
 
-  depends_on = [data.azurerm_key_vault_secret.domain_join_secret]
+  #depends_on = [data.azurerm_key_vault_secret.domain_join_secret]
 
   lifecycle {
     ignore_changes = [settings, protected_settings]
