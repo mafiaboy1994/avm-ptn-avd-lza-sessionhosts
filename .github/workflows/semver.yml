@@ -1,0 +1,96 @@
+name: Semver Auto-Tag with PAT
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Get latest remote tag
+        id: get_tag
+        env:
+          PAT: ${{ secrets.GH_PAT }}
+        run: |
+          repo="https://x-access-token:${PAT}@github.com/${{ github.repository }}"
+      
+          latest_tag=$(git ls-remote --tags --sort="v:refname" $repo | \
+            grep -o 'refs/tags/v[0-9]*\.[0-9]*\.[0-9]*$' | \
+            sed 's#refs/tags/##' | \
+            sort -V | \
+            tail -n1)
+      
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
+      
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+
+      - name: Determine bump type from commit message
+        id: bump
+        run: |
+          commit_msg=$(git log -1 --pretty=%B)
+          echo "Last commit: $commit_msg"
+
+          if [[ "$commit_msg" == *#major* ]]; then
+            bump="major"
+          elif [[ "$commit_msg" == *#minor* ]]; then
+            bump="minor"
+          else
+            bump="patch"
+          fi
+
+          echo "bump_type=$bump" >> $GITHUB_OUTPUT
+          
+      - name: Calculate new version
+        id: version
+        run: |
+          tag="${{ steps.get_tag.outputs.latest_tag }}"
+          version="${tag#v}"
+          IFS='.' read -r major minor patch <<< "$version"
+      
+          case "${{ steps.bump.outputs.bump_type }}" in
+            major)
+              major=$((major + 1)); minor=0; patch=0;;
+            minor)
+              minor=$((minor + 1)); patch=0;;
+            patch)
+              patch=$((patch + 1));;
+          esac
+      
+          new_tag="v$major.$minor.$patch"
+          echo "New tag: $new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
+      
+      - name: Create and push tag
+        env:
+          PAT: ${{ secrets.GH_PAT }}
+        run: |
+          # Check if the tag already exists on the remote
+          if git ls-remote --tags https://x-access-token:${PAT}@github.com/${{ github.repository }} | grep -q "refs/tags/${{ steps.version.outputs.new_tag }}"; then
+            echo "Tag ${{ steps.version.outputs.new_tag }} already exists. Skipping tag creation."
+            exit 0
+          fi
+          # Create and push the tag
+          git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
+          git push https://x-access-token:${PAT}@github.com/${{ github.repository }} "${{ steps.version.outputs.new_tag }}"
+      # - name: Create and push tag
+      #   env:
+      #     PAT: ${{ secrets.GH_PAT }}
+      #   run: |
+      #     git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
+      #     git push https://x-access-token:${PAT}@github.com/${{ github.repository }} --tags
