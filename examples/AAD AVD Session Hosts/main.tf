@@ -7,21 +7,16 @@ resource "random_password" "avd_host_random_password" {
 # Registration information for the host pool.
 resource "azurerm_virtual_desktop_host_pool_registration_info" "registrationinfo" {
   expiration_date = timeadd(timestamp(), "48h")
-  hostpool_id     = module.avm_res_desktopvirtualization_hostpool.resource.id
-
-  lifecycle {
-    ignore_changes = [
-      expiration_date,
-      hostpool_id,
-    ]
-  }
+  hostpool_id     = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/rg-xxx/providers/Microsoft.DesktopVirtualization/hostPools/prod-avd-pool"
 }
+
 
 
 module "module_avd_hosts"{
   source = "../../."
+  count = 2
   hosts_resource_group = "org-avd-val-apps-uks-rg001-hosts"
-  hosts_count = 1
+  vm_index = count.index
   hosts_name_prefix = "avd-apps-staging"
   hosts_sku = "Standard_DS4_v2"
   hosts_os_disk_size = 128
@@ -45,5 +40,5 @@ module "module_avd_hosts"{
   host_pool_name = "hostpool-avd-apps-staging"
   registrationInfoToken = azurerm_virtual_desktop_host_pool_registration_info.registrationinfo.token
   domain_join_type  = "entra"
-  kv_id = "/Subscriptions/SUBSCRIPTION_ID/resourceGroups/rg-networking-org/providers/Microsoft.KeyVault/vaults/kv-avd-uks"
+  kv_id = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/rg-xxxx/providers/Microsoft.KeyVault/vaults/kv-xxxxx"
 }
