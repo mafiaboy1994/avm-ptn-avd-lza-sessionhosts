@@ -104,26 +104,26 @@ jobs:
       - name: Generate GitHub Release Notes + Custom Body
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}  # Or GITHUB_TOKEN if it has the right permissions
-          TAG_NAME: ${{ steps.tag.outputs.tag }}
+          TAG_NAME: ${{ steps.version.outputs.new_tag }}
         run: |
           # Get generated release notes
           NOTES=$(curl -s -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
             -d "{\"tag_name\":\"$TAG_NAME\"}")
-      
+
           GENERATED_BODY=$(echo "$NOTES" | jq -r .body)
-      
+
           # Your custom content
           CUSTOM_BODY="🎉 Automated release for commit ${{ github.sha }}"
-      
+
           # Combine both
           FINAL_BODY="$CUSTOM_BODY
-      
+
           ---
-          
+
           $GENERATED_BODY"
-          
+
               # Create the release with the combined body
               curl -X POST -H "Authorization: token $GH_TOKEN" \
                 -H "Accept: application/vnd.github+json" \
