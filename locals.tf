@@ -7,10 +7,10 @@ locals {
 
   
 
-  # Detect valid secret name for domain join password
-  is_valid_secret_name = (
-    var.domain_join_password_secret_name != null &&
-    var.domain_join_password_secret_name != ""
+  # Detect valid secret resource id for domain join password
+  is_valid_secret_id = (
+    var.domain_join_password_secret_resource_id != null &&
+    var.domain_join_password_secret_resource_id != ""
   )
 
   # Check domain join type
@@ -79,8 +79,8 @@ locals {
 
    # Only use the secret if AD join is true and secret exists
   join_domain_password_value = (
-    local.is_ad_join && local.is_valid_secret_name
-  ) ? data.azurerm_key_vault_secret.domain_join_secret[0].value : null
+    local.is_ad_join && local.is_valid_secret_id
+  ) ? var.domain_join_password_secret_resource_id : null
 
   join_domain_settings = local.is_ad_join ? {
     Name    = var.domain_name
