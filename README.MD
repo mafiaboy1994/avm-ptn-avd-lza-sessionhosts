@@ -29,9 +29,9 @@ This Terraform module automates the deployment of Azure Virtual Desktop (AVD) se
 ```hcl
 module "avd_session_hosts" {
   source = "./path-to-module"
-
+  count                                  = 2 # Number of hosts required
   location                               = "eastus"
-  hosts_count                            = 3
+  vm_index                               = count.index
   hosts_resource_group                   = "rg-avd-hosts"
   hosts_name_prefix                      = "avdhost"
   host_pool_name                         = "my-avd-pool"
@@ -42,10 +42,10 @@ module "avd_session_hosts" {
   hosts_admin_username                   = "azureadmin"
   hosts_admin_password                   = "SuperSecurePassword123!"
   domain_join_type                       = "AD" # or "entra"
-  domain_join_password_secret_name       = "avd-join-secret"
-  domain_name                            = "corp.local"
-  domain_ou_path                         = "OU=AVD,DC=corp,DC=local"
-  domain_join_username                   = "CORP\\joinaccount"
+  domain_join_password_secret_name       = "avd-join-secret" # For AD joined hosts, not required for entra
+  domain_name                            = "corp.local" # For AD joined hosts, not required for entra
+  domain_ou_path                         = "OU=AVD,DC=corp,DC=local" # For AD joined hosts, not required for entra
+  domain_join_username                   = "CORP\\joinaccount" # For AD joined hosts, not required for entra
   shared_image_id                        = null
   kv_id                                  = "/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.KeyVault/vaults/xxx"
   virtual_desktop_host_pool_subnet_configuration = {
@@ -68,6 +68,9 @@ module "avd_session_hosts" {
 - **Active Directory (AD)** join is triggered when:
   - `domain_join_type` = `"AD"`
   - `domain_join_password_secret_name` is provided
+  - `domain_name` is provided
+  - `domain_ou_path` is provided
+  - `domain_join_username` is provided
 - A separate `JsonADDomainExtension` is attached to each VM for AD join.
 - `Entra ID` join uses DSC extension with Entra-specific properties.
 
