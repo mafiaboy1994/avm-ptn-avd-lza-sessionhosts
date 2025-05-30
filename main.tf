@@ -14,11 +14,10 @@ data "azurerm_key_vault_secret" "domain_join_secret" {
 }
 
  resource "azurerm_key_vault_secret" "admin_password" {
-  count = var.hosts_count
 
   key_vault_id = var.kv_id
   #name         = coalesce("${var.avd_host_host_pool_name}-${var.avd_host_vm_admin_username}-password")
-  name            = coalesce("${var.hosts_name_prefix}-${count.index+1}-${var.hosts_admin_username}-password")
+  name            = coalesce("${var.hosts_name_prefix}-${var.vm_index+1}-${var.hosts_admin_username}-password")
   value           = var.hosts_admin_password
   content_type    = null
   expiration_date = timeadd(timestamp(), "720h") # 30 Days
@@ -33,8 +32,7 @@ data "azurerm_key_vault_secret" "domain_join_secret" {
 }
 
 resource "azurerm_network_interface" "avd_host_vm_nic" {
-  count = var.hosts_count
-  name                = "nic-${var.hosts_name_prefix}-${count.index+1}"
+  name                = "nic-${var.hosts_name_prefix}-${var.vm_index+1}"
   resource_group_name = var.hosts_resource_group
   location            = var.location
 
@@ -49,8 +47,7 @@ resource "azurerm_network_interface" "avd_host_vm_nic" {
 }
 
 resource "azurerm_role_assignment" "kv_rights" {
-  count = var.hosts_count
-  principal_id         = azurerm_windows_virtual_machine.avd_host_vm[count.index].identity[0].principal_id
+  principal_id         = azurerm_windows_virtual_machine.avd_host_vm[var.vm_index].identity[0].principal_id
   scope                = var.kv_id
   role_definition_name = "Key Vault Secrets Officer"
   lifecycle {
@@ -63,8 +60,7 @@ resource "azurerm_role_assignment" "kv_rights" {
 
 
 resource "azurerm_role_assignment" "sa_cmk" {
-  count = var.hosts_count
-  principal_id         = azurerm_windows_virtual_machine.avd_host_vm[count.index].identity[0].principal_id
+  principal_id         = azurerm_windows_virtual_machine.avd_host_vm[var.vm_index].identity[0].principal_id
   scope                = var.kv_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
   lifecycle {
@@ -76,25 +72,24 @@ resource "azurerm_role_assignment" "sa_cmk" {
 
 
 resource "azurerm_windows_virtual_machine" "avd_host_vm" {
-  count = var.hosts_count
   resource_group_name = var.hosts_resource_group
   location            = var.location
 
-  name                       = "${var.hosts_name_prefix}${count.index+1}"
+  name                       = "${var.hosts_name_prefix}${var.vm_index+1}"
   size                       = var.hosts_sku
   enable_automatic_updates   = true
   encryption_at_host_enabled = true
   network_interface_ids = [
-    azurerm_network_interface.avd_host_vm_nic[count.index].id
+    azurerm_network_interface.avd_host_vm_nic.id
   ]
   provision_vm_agent = true
   admin_username     = var.hosts_admin_username
-  admin_password     = azurerm_key_vault_secret.admin_password[count.index].value
+  admin_password     = azurerm_key_vault_secret.admin_password.value
   boot_diagnostics {
     storage_account_uri = null
   }
   os_disk {
-    name                 = "disk-osdisk-${var.hosts_name_prefix}${count.index+1}"
+    name                 = "disk-osdisk-${var.hosts_name_prefix}${var.vm_index+1}"
     caching              = "ReadWrite"
     storage_account_type = var.hosts_os_disk_type
     disk_size_gb         = var.hosts_os_disk_size
@@ -169,12 +164,12 @@ resource "azurerm_windows_virtual_machine" "avd_host_vm" {
 
 
 resource "azurerm_virtual_machine_extension" "joinDomain" {
-  count                = local.is_ad_join ? var.hosts_count : 0
+  count                = local.is_ad_join ? 1: 0
   name                 = "domainJoin"
   type                 = "JsonADDomainExtension"
   publisher            = "Microsoft.Compute"
   type_handler_version = "1.3"
-  virtual_machine_id   = azurerm_windows_virtual_machine.avd_host_vm[count.index].id
+  virtual_machine_id   = azurerm_windows_virtual_machine.avd_host_vm.id
 
   settings           = jsonencode(local.join_domain_settings)
   protected_settings = jsonencode(local.join_domain_protected_settings)
@@ -189,9 +184,8 @@ resource "azurerm_virtual_machine_extension" "joinDomain" {
 
 # AVD Join & Entra ID Join Extension
 resource "azurerm_virtual_machine_extension" "avd_host_host_pool_join_dsc" {
-  count = var.hosts_count
-  name                       = "${var.hosts_name_prefix}${count.index+1}-join-host-pool-dsc"
-  virtual_machine_id         = azurerm_windows_virtual_machine.avd_host_vm[count.index].id
+  name                       = "${var.hosts_name_prefix}${var.vm_index+1}-join-host-pool-dsc"
+  virtual_machine_id         = azurerm_windows_virtual_machine.avd_host_vm.id
   publisher                  = "Microsoft.Powershell"
   type                       = "DSC"
   type_handler_version       = "2.73"
@@ -223,10 +217,9 @@ resource "azurerm_virtual_machine_extension" "avd_host_host_pool_join_dsc" {
 
 
 resource "azurerm_virtual_machine_extension" "AADLoginForWindows" {
-  # count = local.is_entra_join ? var.hosts_count : 0
-  count = var.enable_aad_login_extension ? var.hosts_count : 0
+  count = var.enable_aad_login_extension ? 1 : 0
   name                       = "AADLoginForWindows"
-  virtual_machine_id         = azurerm_windows_virtual_machine.avd_host_vm[count.index].id
+  virtual_machine_id         = azurerm_windows_virtual_machine.avd_host_vm.id
   publisher                  = "Microsoft.Azure.ActiveDirectory"
   type                       = "AADLoginForWindows"
   type_handler_version       = "1.0"

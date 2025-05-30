@@ -212,3 +212,9 @@ variable "enable_aad_login_extension"{
   description = "Whether to install the AADLoginForWindows extension to support Entra ID logins."
   default = true
 }
+
+variable "vm_index"{
+  type = number
+  description = "Used for naming hosts when looped"
+  default = 1
+}
