@@ -115,7 +115,8 @@ jobs:
           GENERATED_BODY=$(echo "$NOTES" | jq -r .body)
 
           # Your custom content
-          CUSTOM_HEADER="🎉 Automated release for commit ${{ github.sha }}\n---"
+          CUSTOM_HEADER="🎉 Automated release for commit ${{ github.sha }}
+          ---"
           
           # Merge and escape for JSON
           FINAL_BODY=$(printf "%s\n\n%s" "$CUSTOM_HEADER" "$GENERATED_BODY" | jq -Rs .)
