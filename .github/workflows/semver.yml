@@ -108,15 +108,15 @@ jobs:
         run: |
           # Get generated release notes
           NOTES=$(curl -s -H "Authorization: token $GH_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
-          -d "{\"tag_name\":\"$TAG_NAME\"}")
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
+            -d "{\"tag_name\":\"$TAG_NAME\"}")
 
           GENERATED_BODY=$(echo "$NOTES" | jq -r .body)
 
           # Your custom content
           CUSTOM_HEADER="🎉 Automated release for commit ${{ github.sha }}\n---"
-         
+          
           # Merge and escape for JSON
           FINAL_BODY=$(printf "%s\n\n%s" "$CUSTOM_HEADER" "$GENERATED_BODY" | jq -Rs .)
 
@@ -125,11 +125,11 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/releases \
             -d @- <<EOF
-            {
-              "tag_name": "$TAG_NAME",
-              "name": "Release $TAG_NAME",
-              "body": $FINAL_BODY,
-              "draft": false,
-              "prerelease": false
-            }
-            EOF
+          {
+            "tag_name": "$TAG_NAME",
+            "name": "Release $TAG_NAME",
+            "body": $FINAL_BODY,
+            "draft": false,
+            "prerelease": false
+          }
+          EOF
