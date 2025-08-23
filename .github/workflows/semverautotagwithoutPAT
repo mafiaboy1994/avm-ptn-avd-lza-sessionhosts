@@ -1,0 +1,115 @@
+name: Semver Auto-Tag (no PAT)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to push tags and create releases
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # ensure full history + tags
+          # persist-credentials defaults to true and uses GITHUB_TOKEN
+
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch tags
+        run: |
+          git fetch --tags --force
+
+      - name: Get latest semver tag
+        id: get_tag
+        run: |
+          latest_tag=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=v:refname | tail -n1)
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Determine bump type from commit message
+        id: bump
+        run: |
+          commit_msg=$(git log -1 --pretty=%B)
+          echo "Last commit: $commit_msg"
+          if [[ "$commit_msg" == *#major* ]]; then
+            bump="major"
+          elif [[ "$commit_msg" == *#minor* ]]; then
+            bump="minor"
+          else
+            bump="patch"
+          fi
+          echo "bump_type=$bump" >> "$GITHUB_OUTPUT"
+
+      - name: Calculate new version
+        id: version
+        run: |
+          tag="${{ steps.get_tag.outputs.latest_tag }}"
+          version="${tag#v}"
+          IFS='.' read -r major minor patch <<< "$version"
+          case "${{ steps.bump.outputs.bump_type }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          new_tag="v$major.$minor.$patch"
+          echo "New tag: $new_tag"
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag (using GITHUB_TOKEN)
+        run: |
+          # Make sure we have latest remote tags
+          git fetch --tags --force
+
+          # If tag already exists remotely, skip
+          if git ls-remote --tags origin | grep -q "refs/tags/${{ steps.version.outputs.new_tag }}$"; then
+            echo "Tag ${{ steps.version.outputs.new_tag }} already exists. Skipping."
+            exit 0
+          fi
+
+          git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
+          git push origin "${{ steps.version.outputs.new_tag }}"
+
+      - name: Generate release notes via API and create release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}   # Actions-provided token
+          TAG_NAME: ${{ steps.version.outputs.new_tag }}
+        run: |
+          # Generate release notes
+          NOTES=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                        -H "Accept: application/vnd.github+json" \
+                        -X POST \
+                        https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
+                        -d "{\"tag_name\":\"$TAG_NAME\"}")
+          GENERATED_BODY=$(echo "$NOTES" | jq -r .body)
+
+          # Custom header + generated notes
+          CUSTOM_HEADER="🎉 Automated release for commit ${{ github.sha }}
+          ---"
+          FINAL_BODY=$(printf "%s\n\n%s" "$CUSTOM_HEADER" "$GENERATED_BODY" | jq -Rs .)
+
+          # Create the release
+          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                 -H "Accept: application/vnd.github+json" \
+                 -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+                 -d @- <<EOF
+          {
+            "tag_name": "$TAG_NAME",
+            "name": "Release $TAG_NAME",
+            "body": $FINAL_BODY,
+            "draft": false,
+            "prerelease": false
+          }
+          EOF
